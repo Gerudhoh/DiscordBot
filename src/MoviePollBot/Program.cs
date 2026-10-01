@@ -28,9 +28,6 @@ namespace MoviePoll.Bot {
             var spreadsheetId = Environment.GetEnvironmentVariable("SPREADSHEET_ID")
                 ?? throw new InvalidOperationException("SPREADSHEET_ID is not set");
                 envVars["spreadsheetId"] = spreadsheetId;
-            var gcpTokenFilename = Environment.GetEnvironmentVariable("GOOGLE_SHEETS_ACCESS") 
-                ?? throw new InvalidOperationException("SPREADSHEET_ID is not set");
-                envVars["gcpTokenFilename"] = gcpTokenFilename;
         }
 
         public static async Task SendMessageAsync(List<string> movieOptions) {
@@ -65,7 +62,13 @@ namespace MoviePoll.Bot {
             List<string> movieOptions = [];
             try
             {
-                var serviceAccountCredential = CredentialFactory.FromFile<ServiceAccountCredential>($"secrets/{envVars["gcpTokenFilename"]}");
+                var serviceAccountCredential = CredentialFactory
+                    .FromJson<ServiceAccountCredential>(Environment.GetEnvironmentVariable("GOOGLE_SHEETS_ACCESS"));
+                if(serviceAccountCredential == null)
+                {
+                    return movieOptions;
+                }
+                
                 GoogleCredential credential = serviceAccountCredential.ToGoogleCredential();
                  var service = new SheetsService(new BaseClientService.Initializer()
                 {
