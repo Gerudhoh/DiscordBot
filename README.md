@@ -2,6 +2,9 @@
 
 A small C# console app that posts a weekly movie poll to a Discord channel. It reads candidate movies from a Google Sheet and runs on a GitHub Actions cron schedule, so there is no server to host.
 
+<img width="593" height="684" alt="image" src="https://github.com/user-attachments/assets/bd6a1e60-026e-49aa-8580-043b3fa92068" />
+
+
 ## How it works
 
 1. GitHub Actions runs the app every Sunday in October through December (`0 16 * 10-12 0`, 16:00 UTC).
@@ -11,6 +14,9 @@ A small C# console app that posts a weekly movie poll to a Discord channel. It r
    - 2 or more movies: a native poll with up to 10 answers (the first 10 in sheet order), multiselect, open for 48 hours.
    - 0 or 1 movies: a plain message, `We're watching: <movie>`.
 5. Outside October to December the job is not run
+
+<img width="774" height="252" alt="image" src="https://github.com/user-attachments/assets/acbf05e5-81f7-4e2b-8020-c321642a75d3" />
+
 
 ## Project layout
 
