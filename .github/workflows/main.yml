@@ -1,0 +1,31 @@
+name: Run Weather Alert
+
+# Controls when the workflow will run
+on:
+  schedule:
+    # At 12:00 PM, only on Sunday, October through December
+    - cron: '0 0 12 * 10-12 0'
+    
+  workflow_dispatch:
+
+jobs:
+  send-poll:
+    runs-on: ubuntu-latest
+    environment: Action
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Send poll
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          DISCORD_CHANNEL_ID: ${{ secrets.DISCORD_CHANNEL_ID }}
+          SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
+          GOOGLE_SHEETS_ACCESS: ${{ secrets.SPREADSHEET_ID }}
+        run: dotnet run --project src/MoviePollBot --configuration Release
+
+
+      
