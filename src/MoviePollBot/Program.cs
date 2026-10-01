@@ -50,7 +50,9 @@ namespace MoviePoll.Bot {
             return new PollProperties
             {
                 Question = new PollMediaProperties { Text = "Which movie(s) do you want to watch?" },
-                Answers = movieOptions.Select(m => new PollMediaProperties { Text = m }).ToList(),
+                Answers = movieOptions
+                    .Take(10)   // Discord Polls can only have 10 answers
+                    .Select(m => new PollMediaProperties { Text = m }).ToList(), 
                 AllowMultiselect = true,
                 Duration = 48, // hours
                 LayoutType = PollLayout.Default
@@ -68,7 +70,7 @@ namespace MoviePoll.Bot {
                 {
                     return movieOptions;
                 }
-                
+
                 GoogleCredential credential = serviceAccountCredential.ToGoogleCredential();
                  var service = new SheetsService(new BaseClientService.Initializer()
                 {
