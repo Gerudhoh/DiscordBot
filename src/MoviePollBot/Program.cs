@@ -38,9 +38,13 @@ namespace MoviePoll.Bot {
             var channel = await client.GetChannelAsync(channelId) as IMessageChannel
                 ?? throw new InvalidOperationException($"Channel {channelId} not found or is not a text channel");
 
-            var moviePoll = BuildPoll(movieOptions);
-
-            await channel.SendMessageAsync(text:"Weekly Movie Poll", poll:moviePoll);
+            if(movieOptions.Count <= 1)
+            {
+                 await channel.SendMessageAsync(text: $"We're watching: {movieOptions.FirstOrDefault("Nothing! (Add a movie to the list)")}");
+            } else {
+                var moviePoll = BuildPoll(movieOptions);
+                await channel.SendMessageAsync(text:"Weekly Movie Poll", poll:moviePoll);
+            }
 
             await client.LogoutAsync();
         }
@@ -82,35 +86,8 @@ namespace MoviePoll.Bot {
                     service.Spreadsheets.Values.Get(envVars["spreadsheetId"], range);
 
                 ValueRange response = await request.ExecuteAsync();
-                IList<IList<object>> values = response.Values;
-
-                string fullMonthName = DateTime.Now.ToString("MMMM");
-                var currentMonth = fullMonthName.ToUpper() switch
-                {
-                    "OCTOBER" => Months.OCTOBER,
-                    "NOVEMBER" => Months.NOVEMBER,
-                    "DECEMBER" => Months.DECEMBER,
-                    _ => Months.OUT_OF_SCOPE,
-                };
-
-                if (values != null && currentMonth != Months.OUT_OF_SCOPE && values.Count > 0)
-                {
-                    var currentOptions = values
-                        .Select(row => row.ElementAtOrDefault((int)currentMonth)?.ToString())
-                        .Where(s => !string.IsNullOrWhiteSpace(s))
-                        .ToList();
-                    
-                    currentOptions.ForEach(option => { 
-                        if (!string.IsNullOrWhiteSpace(option)) {
-                                movieOptions.Add(option);
-                        }           
-                    });
-
-                }
-                else
-                {
-                    Console.WriteLine("No data found in the specified range.");
-                }
+                Months currentMonth = GetMonth();
+                return GetMonthsMovies(currentMonth, response.Values);
             }
             catch (Exception ex)
             {
@@ -118,6 +95,31 @@ namespace MoviePoll.Bot {
             }
 
             return movieOptions;
+        }
+        
+        public static List<string> GetMonthsMovies(Months month, IList<IList<object>>spreadsheetData)
+        {
+            if (spreadsheetData == null || month == Months.OUT_OF_SCOPE || spreadsheetData.Count == 0)
+            {
+                return [];
+            }
+        
+            return spreadsheetData
+                .Select(row => row.ElementAtOrDefault((int)month)?.ToString() ?? "")
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .ToList();
+        }
+
+        private static Months GetMonth()
+        {
+            string fullMonthName = DateTime.UtcNow.ToString("MMMM");
+            return fullMonthName.ToUpper() switch
+            {
+                "OCTOBER" => Months.OCTOBER,
+                "NOVEMBER" => Months.NOVEMBER,
+                "DECEMBER" => Months.DECEMBER,
+                _ => Months.OUT_OF_SCOPE,
+            };
         }
     }
 }

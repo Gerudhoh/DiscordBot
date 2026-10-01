@@ -26,7 +26,9 @@ Keep `MoviePicker` and the date check pure (no I/O) so the user can practice uni
 3. **Strikethrough detection forces the Sheets API.** Published-CSV and `values.get` return text only, with no formatting. Use `spreadsheets.get` with `includeGridData=true` and a `fields` mask (`sheets.data.rowData.values(formattedValue,effectiveFormat.textFormat.strikethrough)`). A movie is **skipped** if the cell is empty or `strikethrough == true`. Deleted entries are just empty cells.
    - Auth: Google Cloud service account (Sheets API enabled), sheet shared with the service account's email as Viewer. NuGet: `Google.Apis.Sheets.v4`.
 4. **Movie selection:** the 3 columns are October, November and December movies. Pick the column from the current month (UTC date: Oct -> col A, Nov -> col B, Dec -> col C). Drop skipped cells (empty or struck out), shuffle, take up to 10. If fewer than 2 remain, don't post and fail the job loudly. `MoviePicker` takes the month and the grid, so the column mapping is unit-testable. Prefer matching by the header row text ("October" etc.) over hardcoded column indexes, if the sheet has headers.
+**skipped** shuffle; out of scope for a simple project.
 5. **Scheduling window:** cron has no year or range. Use `cron: '0 15 * * 0'` (Sundays 15:00 UTC, which is 11am EDT, and GitHub cron can drift by up to about 15 minutes or more), and add a date guard in code: exit 0 silently unless today (UTC) is in [2026-10-04, 2026-12-13]. Also expose `workflow_dispatch` so the user can test-run manually. Optionally add a `DRY_RUN=true` mode that prints the poll instead of posting.
+**skipped** DRY_RUN (out of scope). I limited the job to run oct - dec. It will still run after the mid december cutoff. That's fine by me.
 6. **Secrets** (GitHub repo secrets, read as env vars, never committed): `DISCORD_TOKEN`, `DISCORD_CHANNEL_ID`, `SHEET_ID`, `GOOGLE_CREDENTIALS_JSON` (whole service-account JSON; parse with `GoogleCredential.FromJson`). Locally use `dotnet user-secrets` or a gitignored `.env`.
 7. **Discord setup (one-time, manual):** create an app in the Developer Portal, add the bot, invite it with the `Send Messages` + `Create Polls` permissions (no privileged intents needed), and copy the channel ID with Developer Mode on.
 
@@ -43,8 +45,7 @@ Checkout, `actions/setup-dotnet@v4` (9.0.x), `dotnet run --project src/MoviePoll
 7. Workflow YAML, add secrets, trigger via `workflow_dispatch`, then enable the cron.
 
 ## Verification
-- Unit tests: picker never returns struck or empty cells, caps at 10, handles fewer than 2 movies; date guard boundary days (Oct 4 and Dec 13 are in, Oct 11 is in, Dec 20 is out).
-- Local dry run against the real sheet: confirm struck-out movies are excluded.
+- Unit tests: picker never returns struck or empty cells, caps at 10
 - Real post to a test channel locally, then a `workflow_dispatch` run in Actions, checking that the poll appears in the target channel.
 - After Oct 4, confirm the scheduled run fired (Actions tab); a schedule-triggered run only starts from the default branch.
 
