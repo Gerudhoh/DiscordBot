@@ -4,7 +4,7 @@ name: Send Movie Poll
 on:
   schedule:
     # At 12:00 PM, only on Sunday, October through December
-    - cron: '0 16 * 10-12 0'
+    - cron: '0 16 * 10-12 3'
     
   workflow_dispatch:
 
