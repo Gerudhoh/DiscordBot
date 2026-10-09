@@ -3,7 +3,7 @@ name: Send Movie Poll
 # Controls when the workflow will run
 on:
   schedule:
-    # At 12:00 PM, only on Sunday, October through December
+    # At 12:00 PM, only on Wednesday, October through December
     - cron: '0 16 * 10-12 3'
     
   workflow_dispatch:
